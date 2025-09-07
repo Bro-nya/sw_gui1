@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.media.MediaView?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="org.example.swgui.MainController">
+    <top></top>
+    <center>
+        <StackPane fx:id="videoStack" BorderPane.alignment="CENTER">
+            <MediaView fx:id="mediaView" preserveRatio="true" fitWidth="0" fitHeight="0" />
+            <!-- 裁剪矩形的覆盖层稍后在控制器中添加 -->
+        </StackPane>
+    </center>
+    <bottom>
+        <VBox spacing="8">
+            <padding>
+                <Insets top="10" right="10" bottom="10" left="10"/>
+            </padding>
+            <HBox spacing="10" alignment="CENTER_LEFT">
+                <Button text="打开你的视频" onAction="#onOpenVideo"/>
+                <Button text="播放/暂停" onAction="#onTogglePlay"/>
+                <Separator/>
+                <Button text="标记开始点" onAction="#onMarkStart"/>
+                <Button text="标记结束点" onAction="#onMarkEnd"/>
+                <Label text="开始于:"/>
+                <Label fx:id="startLabel" text="0:00"/>
+                <Label text="结束于:"/>
+                <Label fx:id="endLabel" text="0:00"/>
+            </HBox>
+            <StackPane>
+                <Slider fx:id="timeSlider" />
+                <Pane fx:id="timeOverlay" mouseTransparent="true" pickOnBounds="false" prefHeight="20">
+                    <Region fx:id="startMarker" style="-fx-background-color: #ff5252;" prefWidth="2" prefHeight="16" layoutY="2"/>
+                    <Region fx:id="endMarker" style="-fx-background-color: #40c4ff;" prefWidth="2" prefHeight="16" layoutY="2"/>
+                </Pane>
+            </StackPane>
+            <HBox spacing="10">
+                <Label text="当前时间位置:"/>
+                <Label fx:id="currentTimeLabel" text="0:00"/>
+                <Pane HBox.hgrow="ALWAYS"/>
+                <Label text="调节音量"/>
+                <Slider fx:id="volumeSlider" prefWidth="120"/>
+            </HBox>
+        </VBox>
+    </bottom>
+    <right>
+        <TitledPane text="参数控制面板" expanded="true">
+            <content>
+                <VBox spacing="8">
+                    <padding>
+                        <Insets top="10" right="10" bottom="10" left="10"/>
+                    </padding>
+                    <HBox spacing="6">
+                        <Label text="剪辑的mp4输出目录"/>
+                        <TextField fx:id="inputDirField"/>
+                        <Button text="..." onAction="#onBrowseInputDir"/>
+                    </HBox>
+                    <HBox spacing="6">
+                        <Label text="转换的WEBP输出目录"/>
+                        <TextField fx:id="outputDirField"/>
+                        <Button text="..." onAction="#onBrowseOutputDir"/>
+                    </HBox>
+                    <HBox spacing="6">
+                        <Label text="宽度：导出的WEBP宽度(宽高比5:3自动缩放)"/>
+                        <Spinner fx:id="widthSpinner" editable="true" />
+                    </HBox>
+                    <HBox spacing="6">
+                        <Label text="质量（范围1-100，值越大质量越高）"/>
+                        <Spinner fx:id="qualitySpinner" editable="true" />
+                    </HBox>
+                    <HBox spacing="6">
+                        <Label text="压缩（范围 0-6值越高压缩率越高但速度越慢）"/>
+                        <Spinner fx:id="compressSpinner" editable="true" />
+                    </HBox>
+                    <HBox spacing="6">
+                        <Label text="FPS"/>
+                        <Spinner fx:id="fpsSpinner" editable="true" />
+                    </HBox>
+                    <HBox spacing="6">
+                        <CheckBox fx:id="fadeCheck" text="导出添加黑屏渐入/渐出" />
+                        <Label text="帧数:"/>
+                        <Spinner fx:id="fadeFramesSpinner" editable="true" prefWidth="80"/>
+                    </HBox>
+                    <HBox spacing="8">
+                        <Button text="一键转换(MP4-WEBP)" onAction="#onOneClickConvert"/>
+                    </HBox>
+                </VBox>
+            </content>
+        </TitledPane>
+    </right>
+</BorderPane>
+
+
