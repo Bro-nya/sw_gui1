@@ -12,8 +12,9 @@ public class HelloApplication extends Application {
     @Override
     public void start(Stage stage) throws IOException {
         FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource("main-view.fxml"));
-        Scene scene = new Scene(fxmlLoader.load(), 1200, 600);
+       Scene scene = new Scene(fxmlLoader.load(), 1200, 700); // 增加高度以容纳所有控件
         stage.setTitle("绳网情报站工具箱(动图工具) V0.0");
+        
         
         // 从类路径加载图标
         try {
@@ -28,7 +29,7 @@ public class HelloApplication extends Application {
             System.out.println("无法加载图标: " + e.getMessage());
         }
         
-        stage.setResizable(false);
+        stage.setResizable(true); // 允许调整窗口大小
         stage.setScene(scene);
         stage.show();
     }

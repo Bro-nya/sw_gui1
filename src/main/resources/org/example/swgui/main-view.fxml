@@ -5,7 +5,7 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.media.MediaView?>
 
-<BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="org.example.swgui.MainController">
+<BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="org.example.swgui.MainController" stylesheets="@styles.css">
     <top></top>
     <center>
         <StackPane fx:id="videoStack" BorderPane.alignment="CENTER">
@@ -19,26 +19,26 @@
                 <Insets top="10" right="10" bottom="10" left="10"/>
             </padding>
             <HBox spacing="10" alignment="CENTER_LEFT">
-                <Button text="选择你的视频" onAction="#onOpenVideo"/>
+                <Button text="选择你的视频" onAction="#onOpenVideo" styleClass="primary-button"/>
                 <Button text="播放/暂停" onAction="#onTogglePlay"/>
                 <Separator/>
                 <Button text="标记开始点" onAction="#onMarkStart"/>
                 <Button text="标记结束点" onAction="#onMarkEnd"/>
                 <Label text="开始于:"/>
-                <Label fx:id="startLabel" text="0:00"/>
+                <Label fx:id="startLabel" text="0:00" styleClass="time-label"/>
                 <Label text="结束于:"/>
-                <Label fx:id="endLabel" text="0:00"/>
+                <Label fx:id="endLabel" text="0:00" styleClass="time-label"/>
             </HBox>
             <StackPane>
                 <Slider fx:id="timeSlider" />
                 <Pane fx:id="timeOverlay" mouseTransparent="true" pickOnBounds="false" prefHeight="20">
-                    <Region fx:id="startMarker" style="-fx-background-color: #ff5252;" prefWidth="2" prefHeight="16" layoutY="2"/>
-                    <Region fx:id="endMarker" style="-fx-background-color: #40c4ff;" prefWidth="2" prefHeight="16" layoutY="2"/>
+                    <Region fx:id="startMarker" style="-fx-background-color: #ff4d4d;" prefWidth="2" prefHeight="16" layoutY="2"/>
+                    <Region fx:id="endMarker" style="-fx-background-color: #2c7be5;" prefWidth="2" prefHeight="16" layoutY="2"/>
                 </Pane>
             </StackPane>
             <HBox spacing="10">
                 <Label text="当前时间位置:"/>
-                <Label fx:id="currentTimeLabel" text="0:00"/>
+                <Label fx:id="currentTimeLabel" text="0:00" styleClass="current-time-label"/>
                 <Pane HBox.hgrow="ALWAYS"/>
                 <Label text="调节音量"/>
                 <Slider fx:id="volumeSlider" prefWidth="120"/>
@@ -46,56 +46,60 @@
         </VBox>
     </bottom>
     <right>
-        <TitledPane text="控制面板" expanded="true">
-            <content>
-                <VBox spacing="8">
-                    <padding>
-                        <Insets top="10" right="10" bottom="10" left="10"/>
-                    </padding>
-                    <HBox spacing="6">
-                        <Label text="剪辑后mp4输出目录"/>
-                        <TextField fx:id="inputDirField"/>
-                        <Button text="..." onAction="#onBrowseInputDir"/>
-                    </HBox>
-                    <HBox spacing="6">
-                        <Label text="最终动图输出目录"/>
-                        <TextField fx:id="outputDirField"/>
-                        <Button text="..." onAction="#onBrowseOutputDir"/>
-                    </HBox>
-                    <HBox spacing="6">
-                        <Label text="输出动图宽度(宽高5:3自动缩放)"/>
-                        <Spinner fx:id="widthSpinner" editable="true" />
-                    </HBox>
-                    <HBox spacing="6">
-                        <Label text="质量（范围1-100，值越大质量越高）"/>
-                        <Spinner fx:id="qualitySpinner" editable="true" />
-                    </HBox>
-                    <HBox spacing="6">
-                        <Label text="压缩（范围 0-6，值越高压缩越高）"/>
-                        <Spinner fx:id="compressSpinner" editable="true" />
-                    </HBox>
-                    <HBox spacing="6">
-                        <Label text="输出动图FPS"/>
-                        <Spinner fx:id="fpsSpinner" editable="true" />
-                    </HBox>
-                    <HBox spacing="6">
-                        <CheckBox fx:id="fadeCheck" text="渐入/渐出效果" />
-                        <Label text="渐变帧数:"/>
-                        <Spinner fx:id="fadeFramesSpinner" editable="true" prefWidth="80"/>
-                    </HBox>
-                    <HBox spacing="6">
-                        <Label text="自定义文件名:"/>
-                        <TextField fx:id="customFileNameField" promptText="留空使用原始文件名"/>
-                    </HBox>
-                     <HBox spacing="6">
-                        <CheckBox fx:id="deleteMp4Check" text="动图生成后自动清理MP4文件" />
-                    </HBox>
-                    <HBox spacing="8">
-                        <Button text="一键转换" onAction="#onOneClickConvert"/>
-                    </HBox>
-                </VBox>
-            </content>
-        </TitledPane>
+        <AnchorPane minWidth="300" maxWidth="400" prefWidth="400">
+            <ScrollPane fitToWidth="true" fitToHeight="true" vbarPolicy="AS_NEEDED" hbarPolicy="NEVER" AnchorPane.topAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0">
+                <TitledPane text="控制面板" expanded="true" styleClass="control-panel">
+                    <content>
+                        <VBox spacing="8" styleClass="settings-box" maxWidth="380" prefWidth="380">
+                            <padding>
+                                <Insets top="10" right="10" bottom="10" left="10"/>
+                            </padding>
+                            <HBox spacing="6" styleClass="setting-row">
+                                <Label text="剪辑后mp4输出目录"/>
+                                <TextField fx:id="inputDirField"/>
+                                <Button text="..." onAction="#onBrowseInputDir"/>
+                            </HBox>
+                            <HBox spacing="6">
+                                <Label text="最终动图输出目录"/>
+                                <TextField fx:id="outputDirField"/>
+                                <Button text="..." onAction="#onBrowseOutputDir"/>
+                            </HBox>
+                            <HBox spacing="6">
+                                <Label text="输出动图宽度(宽高5:3自动缩放)"/>
+                                <Spinner fx:id="widthSpinner" editable="true" />
+                            </HBox>
+                            <HBox spacing="6">
+                                <Label text="质量（范围1-100，值越大质量越高）"/>
+                                <Spinner fx:id="qualitySpinner" editable="true" />
+                            </HBox>
+                            <HBox spacing="6">
+                                <Label text="压缩（范围 0-6，值越高压缩越高）"/>
+                                <Spinner fx:id="compressSpinner" editable="true" />
+                            </HBox>
+                            <HBox spacing="6">
+                                <Label text="输出动图FPS"/>
+                                <Spinner fx:id="fpsSpinner" editable="true" />
+                            </HBox>
+                            <HBox spacing="6">
+                                <CheckBox fx:id="fadeCheck" text="渐入/渐出效果" />
+                                <Label text="渐变帧数:"/>
+                                <Spinner fx:id="fadeFramesSpinner" editable="true" prefWidth="80"/>
+                            </HBox>
+                            <HBox spacing="6">
+                                <Label text="自定义文件名:"/>
+                                <TextField fx:id="customFileNameField" promptText="留空使用原始文件名"/>
+                            </HBox>
+                             <HBox spacing="6">
+                                <CheckBox fx:id="deleteMp4Check" text="动图生成后自动清理MP4文件" />
+                            </HBox>
+                            <HBox spacing="8">
+                                <Button text="一键转换" onAction="#onOneClickConvert" styleClass="primary-button"/>
+                            </HBox>
+                        </VBox>
+                    </content>
+                </TitledPane>
+            </ScrollPane>
+        </AnchorPane>
     </right>
 </BorderPane>
 

@@ -6,6 +6,7 @@ import javafx.beans.property.SimpleDoubleProperty;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
@@ -137,6 +138,19 @@ public class MainController {
 
     @FXML
     public void initialize() {
+        // 添加窗口大小变化监听，确保控制面板不会超出限制
+        Platform.runLater(() -> {
+            Scene scene = videoStack.getScene();
+            if (scene != null) {
+                scene.widthProperty().addListener((obs, oldWidth, newWidth) -> {
+                    // 确保右侧面板不会太宽
+                    double videoWidth = newWidth.doubleValue() - 400; // 给控制面板留出400px
+                    if (videoWidth > 0) {
+                        videoStack.setPrefWidth(videoWidth);
+                    }
+                });
+            }
+        });
         // 恢复上次使用的MP4输入目录
         String lastMp4InputDir = PREFS.get(PREF_MP4_INPUT_DIR, "");
         if (!lastMp4InputDir.isEmpty() && new File(lastMp4InputDir).isDirectory()) {
