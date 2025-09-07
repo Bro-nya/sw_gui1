@@ -32,6 +32,8 @@ import java.nio.charset.StandardCharsets;
 import java.text.DecimalFormat;
 import java.util.Optional;
 
+import java.util.prefs.Preferences;
+
 public class MainController {
 
     @FXML private MediaView mediaView;
@@ -60,6 +62,10 @@ public class MainController {
     @FXML private javafx.scene.layout.Region startMarker;
     @FXML private javafx.scene.layout.Region endMarker;
 
+    private static final String PREF_OUTPUT_DIR = "output_directory";
+    private static final Preferences PREFS = Preferences.userNodeForPackage(MainController.class);
+    private static final String PREF_MP4_INPUT_DIR = "mp4_input_directory";
+
     private MediaPlayer mediaPlayer;
     private Duration markStart = Duration.ZERO;
     private Duration markEnd = Duration.ZERO;
@@ -85,6 +91,29 @@ public class MainController {
 
     @FXML
     public void initialize() {
+        // 恢复上次使用的MP4输入目录
+        String lastMp4InputDir = PREFS.get(PREF_MP4_INPUT_DIR, "");
+        if (!lastMp4InputDir.isEmpty() && new File(lastMp4InputDir).isDirectory()) {
+            inputDirField.setText(lastMp4InputDir);
+        }
+// 添加MP4输入目录变化的监听器
+        inputDirField.textProperty().addListener((obs, oldVal, newVal) -> {
+            if (!newVal.isEmpty() && new File(newVal).isDirectory()) {
+                PREFS.put(PREF_MP4_INPUT_DIR, newVal);
+            }
+        });
+        // 恢复上次使用的输出目录
+        String lastOutputDir = PREFS.get(PREF_OUTPUT_DIR, "");
+        if (!lastOutputDir.isEmpty() && new File(lastOutputDir).isDirectory()) {
+            outputDirField.setText(lastOutputDir);
+        }
+// 添加监听器保存输出目录变化
+        outputDirField.textProperty().addListener((obs, oldVal, newVal) -> {
+            if (!newVal.isEmpty() && new File(newVal).isDirectory()) {
+                PREFS.put(PREF_OUTPUT_DIR, newVal);
+            }
+        });
+
         widthSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(64, 4096, 500, 2));
         qualitySpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 100, 80));
         compressSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(0, 6, 4));
@@ -365,10 +394,27 @@ public class MainController {
         setupTimeMarkers();
     }
 
+    // 修改onBrowseInputDir方法以保存选择的MP4输入目录
     @FXML
-    public void onBrowseInputDir(ActionEvent e) { browseDir(inputDirField, e); }
+    public void onBrowseInputDir(ActionEvent e) {
+        browseDir(inputDirField, e);
+
+        // 保存选择的MP4输入目录
+        String selectedDir = inputDirField.getText();
+        if (!selectedDir.isEmpty()) {
+            PREFS.put(PREF_MP4_INPUT_DIR, selectedDir);
+        }
+    }
     @FXML
-    public void onBrowseOutputDir(ActionEvent e) { browseDir(outputDirField, e); }
+    public void onBrowseOutputDir(ActionEvent e) {
+        browseDir(outputDirField, e);
+
+        // 保存选择的输出目录
+        String selectedDir = outputDirField.getText();
+        if (!selectedDir.isEmpty()) {
+            PREFS.put(PREF_OUTPUT_DIR, selectedDir);
+        }
+    }
     
 
     private void browseDir(TextField field, ActionEvent e) {
@@ -532,7 +578,7 @@ public class MainController {
         try {
             Platform.runLater(() -> {
                 Alert a = new Alert(Alert.AlertType.CONFIRMATION,
-                        "选取视频较长！！！当前选取时长约 " + String.format("%.1f", durationMs/1000.0) + " 秒，确定继续导出吗？",
+                        "选取视频较长！！！当前选取时长约 " + String.format("%.1f", durationMs/1000.0) + " 秒，不能导出！！！",
                         ButtonType.OK, ButtonType.CANCEL);
                 a.setTitle("导出确认");
                 a.showAndWait().ifPresent(bt -> ret[0] = (bt == ButtonType.OK));
