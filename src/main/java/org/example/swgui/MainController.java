@@ -642,8 +642,10 @@ public class MainController {
                 "for %%F in (\"%input_dir%\\*.%input files suffix%\") do (\r\n" +
                 "echo 正在处理: %%~nxF\r\n" +
                 "ffmpeg -hide_banner -threads %hx% -i \"%%F\" -c:v libwebp -loop 0 -vf \"scale=%with%:-1:flags=lanczos,fps=%FPS%\" -q:v %quality% -compression_level %compress% \"%output_dir%\\%%~nF.webp\" -y\r\n" +
+                "rem 将webp重命名为gif\r\n" +
+                "ren \"%output_dir%\\%%~nF.webp\" \"%%~nF.gif\"\r\n" +
                 ")\r\n" +
-                "echo WebP 生成完成。\r\n" +
+                "echo GIF 生成完成。\r\n" +
                 "explorer \"%output_dir%\"\r\n" +
                 "exit /b 0\r\n";
 
