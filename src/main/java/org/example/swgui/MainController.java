@@ -94,31 +94,41 @@ public class MainController {
     private static final String FFMPEG_RESOURCE_PATH = "/org/example/swgui/ffmpeg.exe";
     private static File ffmpegExe = null;
 
+
+
     // 添加一个静态初始化块来准备ffmpeg.exe
     static {
         try {
-            // 获取资源URL
-            URL ffmpegUrl = MainController.class.getResource(FFMPEG_RESOURCE_PATH);
-            if (ffmpegUrl != null) {
-                // 将资源复制到临时文件
-                File tempDir = new File(System.getProperty("java.io.tmpdir"), "swgui");
-                tempDir.mkdirs();
-                ffmpegExe = new File(tempDir, "ffmpeg.exe");
+            // 首先尝试从项目的input目录加载ffmpeg.exe
+            String userDir = System.getProperty("user.dir");
+            ffmpegExe = new File(userDir, "input\\ffmpeg.exe");
+            
+            if (!ffmpegExe.exists()) {
+                // 如果input目录中没有，再尝试从资源加载
+                URL ffmpegUrl = MainController.class.getResource(FFMPEG_RESOURCE_PATH);
+                if (ffmpegUrl != null) {
+                    // 将资源复制到临时文件
+                    File tempDir = new File(System.getProperty("java.io.tmpdir"), "swgui");
+                    tempDir.mkdirs();
+                    ffmpegExe = new File(tempDir, "ffmpeg.exe");
 
-                // 复制资源到临时文件
-                try (InputStream in = ffmpegUrl.openStream();
-                     FileOutputStream out = new FileOutputStream(ffmpegExe)) {
-                    byte[] buffer = new byte[1024];
-                    int len;
-                    while ((len = in.read(buffer)) > 0) {
-                        out.write(buffer, 0, len);
+                    // 复制资源到临时文件
+                    try (InputStream in = ffmpegUrl.openStream();
+                         FileOutputStream out = new FileOutputStream(ffmpegExe)) {
+                        byte[] buffer = new byte[1024];
+                        int len;
+                        while ((len = in.read(buffer)) > 0) {
+                            out.write(buffer, 0, len);
+                        }
                     }
-                }
 
-                // 设置可执行权限
-                ffmpegExe.setExecutable(true);
+                    // 设置可执行权限
+                    ffmpegExe.setExecutable(true);
+                } else {
+                    System.err.println("无法找到ffmpeg.exe资源");
+                }
             } else {
-                System.err.println("无法找到ffmpeg.exe资源");
+                System.out.println("从input目录加载ffmpeg.exe成功");
             }
         } catch (IOException e) {
             System.err.println("准备ffmpeg.exe失败: " + e.getMessage());
@@ -561,7 +571,7 @@ public class MainController {
             if ((cropHpx & 1) == 1) cropHpx -= 1;
         }
 
-        String ffmpeg = "ffmpeg"; // 要求 ffmpeg 在 PATH
+        String ffmpeg = (ffmpegExe != null && ffmpegExe.exists()) ? ffmpegExe.getAbsolutePath() : "ffmpeg";
         String start = msToTimestamp(startMs);
         String duration = msToTimestamp(durationMs);
         String cropFilter = String.format("crop=%d:%d:%d:%d,setsar=1", cropWpx, cropHpx, cropXpx, cropYpx);
