@@ -58,7 +58,7 @@
                         <Button text="..." onAction="#onBrowseInputDir"/>
                     </HBox>
                     <HBox spacing="6">
-                        <Label text="转换的WEBP输出目录"/>
+                        <Label text="转换的动图输出目录"/>
                         <TextField fx:id="outputDirField"/>
                         <Button text="..." onAction="#onBrowseOutputDir"/>
                     </HBox>
@@ -87,8 +87,11 @@
                         <Label text="自定义文件名:"/>
                         <TextField fx:id="customFileNameField" promptText="留空使用原始文件名"/>
                     </HBox>
+                     <HBox spacing="6">
+                        <CheckBox fx:id="deleteMp4Check" text="GIF生成后自动删除MP4文件" />
+                    </HBox>
                     <HBox spacing="8">
-                        <Button text="一键转换(MP4-WEBP)" onAction="#onOneClickConvert"/>
+                        <Button text="一键转换(MP4-动图)" onAction="#onOneClickConvert"/>
                     </HBox>
                 </VBox>
             </content>

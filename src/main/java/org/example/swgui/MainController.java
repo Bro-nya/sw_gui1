@@ -60,8 +60,7 @@ public class MainController {
     @FXML private Pane timeOverlay;
     @FXML private javafx.scene.layout.Region startMarker;
     @FXML private javafx.scene.layout.Region endMarker;
-
-
+    @FXML private CheckBox deleteMp4Check; // 添加这一行
 
     private static final String PREF_OUTPUT_DIR = "output_directory";
     private static final Preferences PREFS = Preferences.userNodeForPackage(MainController.class);
@@ -522,7 +521,7 @@ public class MainController {
             return;
         }
         // 导出前二次确认：范围超过10秒
-        if ((endMs - startMs) > 10_000) {
+        if ((endMs - startMs) > 20_000) {
             boolean proceed = confirmLongExport(endMs - startMs);
             if (!proceed) return;
         }
@@ -752,10 +751,19 @@ public class MainController {
         contentBuilder.append("    \"").append(ffmpegPath).append("\" -hide_banner -threads %hx% -i \"%%F\" -c:v libwebp -loop 0 -vf \"scale=%with%:-1:flags=lanczos,fps=%FPS%\" -q:v %quality% -compression_level %compress% \"%output_dir%\\!output_name!.webp\" -y\r\n\r\n");
         contentBuilder.append("    rem 将webp重命名为gif\r\n");
         contentBuilder.append("    ren \"%output_dir%\\!output_name!.webp\" \"!output_name!.gif\"\r\n");
+        
+        // 如果勾选了删除MP4文件，则添加删除命令
+        if (deleteMp4Check.isSelected()) {
+            contentBuilder.append("    rem 删除原始MP4文件\r\n");
+            contentBuilder.append("    del \"%%F\"\r\n");
+        }
+        
         contentBuilder.append(")\r\n\r\n");
         contentBuilder.append("echo GIF 生成完成。\r\n");
         contentBuilder.append("explorer \"%output_dir%\"\r\n");
         contentBuilder.append("exit /b 0\r\n");
+
+        
 
         String content = contentBuilder.toString();
 
