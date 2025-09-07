@@ -45,6 +45,7 @@ public class MainController {
     private TextField customFileNameField;  // 新增自定义文件名字段
     @FXML private TextField inputDirField;
     @FXML private TextField outputDirField;
+    // 错误示例：空方法和过时注释
     // 移除目标目录与时间精确输入
     @FXML private TextField cropXField;
     @FXML private TextField cropYField;
@@ -60,8 +61,7 @@ public class MainController {
     @FXML private Pane timeOverlay;
     @FXML private javafx.scene.layout.Region startMarker;
     @FXML private javafx.scene.layout.Region endMarker;
-
-
+    @FXML private CheckBox deleteMp4Check; // 添加这一行
 
     private static final String PREF_OUTPUT_DIR = "output_directory";
     private static final Preferences PREFS = Preferences.userNodeForPackage(MainController.class);
@@ -128,7 +128,7 @@ public class MainController {
                     System.err.println("无法找到ffmpeg.exe资源");
                 }
             } else {
-                System.out.println("从input目录加载ffmpeg.exe成功");
+                System.out.println("加载成功");
             }
         } catch (IOException e) {
             System.err.println("准备ffmpeg.exe失败: " + e.getMessage());
@@ -295,8 +295,9 @@ public class MainController {
     }
 
     @FXML
-    public void onApplyTimeFields() { }
+    public void onApplyTimeFields() { } // 空方法
 
+    // 修复建议：要么实现方法，要么注释掉/删除
     @FXML
     public void onApplyCropFields() {
         if (mediaPlayer == null) return;
@@ -752,14 +753,27 @@ public class MainController {
         contentBuilder.append("    \"").append(ffmpegPath).append("\" -hide_banner -threads %hx% -i \"%%F\" -c:v libwebp -loop 0 -vf \"scale=%with%:-1:flags=lanczos,fps=%FPS%\" -q:v %quality% -compression_level %compress% \"%output_dir%\\!output_name!.webp\" -y\r\n\r\n");
         contentBuilder.append("    rem 将webp重命名为gif\r\n");
         contentBuilder.append("    ren \"%output_dir%\\!output_name!.webp\" \"!output_name!.gif\"\r\n");
+        
+        // 如果勾选了删除MP4文件，则添加删除命令
+        if (deleteMp4Check.isSelected()) {
+            contentBuilder.append("    rem 删除原始MP4文件\r\n");
+            contentBuilder.append("    del \"%%F\"\r\n");
+        }
+        
         contentBuilder.append(")\r\n\r\n");
         contentBuilder.append("echo GIF 生成完成。\r\n");
         contentBuilder.append("explorer \"%output_dir%\"\r\n");
         contentBuilder.append("exit /b 0\r\n");
 
+        
+
         String content = contentBuilder.toString();
 
+        // 错误示例：临时文件未清理
         Path tmp = Files.createTempFile("swgif-", ".bat");
+        // 没有在程序退出时删除临时文件
+        
+        // 修复建议：在程序退出时添加清理逻辑
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(tmp.toFile()))) {
             bw.write(content);
         }
