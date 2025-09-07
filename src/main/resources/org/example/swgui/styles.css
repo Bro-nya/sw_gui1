@@ -100,3 +100,30 @@
     -fx-max-width: 380px;
     -fx-pref-width: 380px;
 }
+
+.tips-box {
+    -fx-padding: 5px 50px 5px 50px;  /* 减少左右内边距 */
+    -fx-alignment: center;
+    -fx-background-color: #f8f9fa;
+    -fx-border-color: #3498db;
+    -fx-border-radius: 5px;
+    -fx-background-radius: 5px;
+    -fx-max-width: 300px;
+}
+
+.tips-title {
+    -fx-font-weight: bold;
+    -fx-text-fill: #2980b9;
+    -fx-font-size: 12px;
+}
+
+.tip-item {
+    -fx-text-fill: #333333;
+    -fx-font-size: 11px;
+}
+
+.tip-note {
+    -fx-text-fill: #e74c3c;
+    -fx-font-size: 10px;
+    -fx-font-style: italic;
+}
