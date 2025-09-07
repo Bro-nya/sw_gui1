@@ -19,7 +19,7 @@
                 <Insets top="10" right="10" bottom="10" left="10"/>
             </padding>
             <HBox spacing="10" alignment="CENTER_LEFT">
-                <Button text="打开你的视频" onAction="#onOpenVideo"/>
+                <Button text="选择你的视频" onAction="#onOpenVideo"/>
                 <Button text="播放/暂停" onAction="#onTogglePlay"/>
                 <Separator/>
                 <Button text="标记开始点" onAction="#onMarkStart"/>
@@ -46,24 +46,24 @@
         </VBox>
     </bottom>
     <right>
-        <TitledPane text="参数控制面板" expanded="true">
+        <TitledPane text="控制面板" expanded="true">
             <content>
                 <VBox spacing="8">
                     <padding>
                         <Insets top="10" right="10" bottom="10" left="10"/>
                     </padding>
                     <HBox spacing="6">
-                        <Label text="剪辑的mp4输出目录"/>
+                        <Label text="剪辑后mp4输出目录"/>
                         <TextField fx:id="inputDirField"/>
                         <Button text="..." onAction="#onBrowseInputDir"/>
                     </HBox>
                     <HBox spacing="6">
-                        <Label text="转换的动图输出目录"/>
+                        <Label text="最终动图输出目录"/>
                         <TextField fx:id="outputDirField"/>
                         <Button text="..." onAction="#onBrowseOutputDir"/>
                     </HBox>
                     <HBox spacing="6">
-                        <Label text="宽度：导出的WEBP宽度(宽高比5:3自动缩放)"/>
+                        <Label text="输出动图宽度(宽高5:3自动缩放)"/>
                         <Spinner fx:id="widthSpinner" editable="true" />
                     </HBox>
                     <HBox spacing="6">
@@ -71,16 +71,16 @@
                         <Spinner fx:id="qualitySpinner" editable="true" />
                     </HBox>
                     <HBox spacing="6">
-                        <Label text="压缩（范围 0-6值越高压缩率越高但速度越慢）"/>
+                        <Label text="压缩（范围 0-6，值越高压缩越高）"/>
                         <Spinner fx:id="compressSpinner" editable="true" />
                     </HBox>
                     <HBox spacing="6">
-                        <Label text="FPS"/>
+                        <Label text="输出动图FPS"/>
                         <Spinner fx:id="fpsSpinner" editable="true" />
                     </HBox>
                     <HBox spacing="6">
-                        <CheckBox fx:id="fadeCheck" text="导出添加黑屏渐入/渐出" />
-                        <Label text="帧数:"/>
+                        <CheckBox fx:id="fadeCheck" text="渐入/渐出效果" />
+                        <Label text="渐变帧数:"/>
                         <Spinner fx:id="fadeFramesSpinner" editable="true" prefWidth="80"/>
                     </HBox>
                     <HBox spacing="6">
@@ -88,10 +88,10 @@
                         <TextField fx:id="customFileNameField" promptText="留空使用原始文件名"/>
                     </HBox>
                      <HBox spacing="6">
-                        <CheckBox fx:id="deleteMp4Check" text="GIF生成后自动删除MP4文件" />
+                        <CheckBox fx:id="deleteMp4Check" text="动图生成后自动清理MP4文件" />
                     </HBox>
                     <HBox spacing="8">
-                        <Button text="一键转换(MP4-动图)" onAction="#onOneClickConvert"/>
+                        <Button text="一键转换" onAction="#onOneClickConvert"/>
                     </HBox>
                 </VBox>
             </content>
