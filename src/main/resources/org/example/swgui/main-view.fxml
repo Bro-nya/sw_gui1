@@ -83,6 +83,10 @@
                         <Label text="帧数:"/>
                         <Spinner fx:id="fadeFramesSpinner" editable="true" prefWidth="80"/>
                     </HBox>
+                    <HBox spacing="6">
+                        <Label text="自定义文件名:"/>
+                        <TextField fx:id="customFileNameField" promptText="留空使用原始文件名"/>
+                    </HBox>
                     <HBox spacing="8">
                         <Button text="一键转换(MP4-WEBP)" onAction="#onOneClickConvert"/>
                     </HBox>

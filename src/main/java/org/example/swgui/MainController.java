@@ -18,10 +18,7 @@ import javafx.stage.FileChooser;
 import javafx.util.Duration;
 import javafx.geometry.Bounds;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -44,6 +41,8 @@ public class MainController {
     @FXML private Label endLabel;
     @FXML private StackPane videoStack;
 
+    @FXML
+    private TextField customFileNameField;  // 新增自定义文件名字段
     @FXML private TextField inputDirField;
     @FXML private TextField outputDirField;
     // 移除目标目录与时间精确输入
@@ -62,9 +61,12 @@ public class MainController {
     @FXML private javafx.scene.layout.Region startMarker;
     @FXML private javafx.scene.layout.Region endMarker;
 
+
+
     private static final String PREF_OUTPUT_DIR = "output_directory";
     private static final Preferences PREFS = Preferences.userNodeForPackage(MainController.class);
     private static final String PREF_MP4_INPUT_DIR = "mp4_input_directory";
+    
 
     private MediaPlayer mediaPlayer;
     private Duration markStart = Duration.ZERO;
@@ -88,6 +90,40 @@ public class MainController {
     private static final int CROP_RATIO_W = 5;
     private static final int CROP_RATIO_H = 3;
     private static final double CROP_RATIO = (double) CROP_RATIO_H / (double) CROP_RATIO_W;
+
+    private static final String FFMPEG_RESOURCE_PATH = "/org/example/swgui/ffmpeg.exe";
+    private static File ffmpegExe = null;
+
+    // 添加一个静态初始化块来准备ffmpeg.exe
+    static {
+        try {
+            // 获取资源URL
+            URL ffmpegUrl = MainController.class.getResource(FFMPEG_RESOURCE_PATH);
+            if (ffmpegUrl != null) {
+                // 将资源复制到临时文件
+                File tempDir = new File(System.getProperty("java.io.tmpdir"), "swgui");
+                tempDir.mkdirs();
+                ffmpegExe = new File(tempDir, "ffmpeg.exe");
+
+                // 复制资源到临时文件
+                try (InputStream in = ffmpegUrl.openStream();
+                     FileOutputStream out = new FileOutputStream(ffmpegExe)) {
+                    byte[] buffer = new byte[1024];
+                    int len;
+                    while ((len = in.read(buffer)) > 0) {
+                        out.write(buffer, 0, len);
+                    }
+                }
+
+                // 设置可执行权限
+                ffmpegExe.setExecutable(true);
+            } else {
+                System.err.println("无法找到ffmpeg.exe资源");
+            }
+        } catch (IOException e) {
+            System.err.println("准备ffmpeg.exe失败: " + e.getMessage());
+        }
+    }
 
     @FXML
     public void initialize() {
@@ -432,7 +468,16 @@ public class MainController {
             showAlert("缺少输入目录", "请在设置中选择输入目录");
             return;
         }
-        File out = new File(inputDir, "trimmed_" + System.currentTimeMillis() + ".mp4");
+        // 获取自定义文件名，如果为空则使用默认命名
+        String customFileName = Optional.ofNullable(customFileNameField.getText()).orElse("");
+        String outputFileName;
+        if (customFileName.isEmpty()) {
+            outputFileName = "trimmed_" + System.currentTimeMillis() + ".mp4";
+        } else {
+            outputFileName = customFileName + ".mp4";
+        }
+
+        File out = new File(inputDir, outputFileName);
 
         // 将 Media 源 URI 转为本地文件路径，处理 %20 等转义与 file:/// 前缀
         String inputPath;
@@ -664,36 +709,45 @@ public class MainController {
     private boolean oneClickAfterExport = false;
 
     private Path generateBat() throws IOException {
+        String ffmpegPath = (ffmpegExe != null && ffmpegExe.exists()) ? ffmpegExe.getAbsolutePath() : "ffmpeg";
+        ffmpegPath = ffmpegPath.replace("\\", "\\\\");
         String inputDir = Optional.ofNullable(inputDirField.getText()).orElse("");
         String outputDir = Optional.ofNullable(outputDirField.getText()).orElse("");
+        String customFileName = Optional.ofNullable(customFileNameField.getText()).orElse("");
         int cores = 4;
         int width = widthSpinner.getValue();
         int quality = qualitySpinner.getValue();
         int compress = compressSpinner.getValue();
         int fps = fpsSpinner.getValue();
 
-        String content = "@echo off\r\n" +
-                "chcp 65001 >nul\r\n" +
-                "setlocal enabledelayedexpansion\r\n" +
-                "\r\n" +
-                "set \"input_dir=" + inputDir + "\"\r\n" +
-                "set \"output_dir=" + outputDir + "\"\r\n" +
-                "set \"hx=" + cores + "\"\r\n" +
-                "set \"input files suffix=mp4\"\r\n" +
-                "set \"with=" + width + "\"\r\n" +
-                "set \"quality=" + quality + "\"\r\n" +
-                "set \"compress=" + compress + "\"\r\n" +
-                "set \"FPS=" + fps + "\"\r\n" +
-                "if not exist \"%output_dir%\" mkdir \"%output_dir%\"\r\n" +
-                "for %%F in (\"%input_dir%\\*.%input files suffix%\") do (\r\n" +
-                "echo 正在处理: %%~nxF\r\n" +
-                "ffmpeg -hide_banner -threads %hx% -i \"%%F\" -c:v libwebp -loop 0 -vf \"scale=%with%:-1:flags=lanczos,fps=%FPS%\" -q:v %quality% -compression_level %compress% \"%output_dir%\\%%~nF.webp\" -y\r\n" +
-                "rem 将webp重命名为gif\r\n" +
-                "ren \"%output_dir%\\%%~nF.webp\" \"%%~nF.gif\"\r\n" +
-                ")\r\n" +
-                "echo GIF 生成完成。\r\n" +
-                "explorer \"%output_dir%\"\r\n" +
-                "exit /b 0\r\n";
+        // 构建批处理文件内容
+        StringBuilder contentBuilder = new StringBuilder();
+        contentBuilder.append("@echo off\r\n");
+        contentBuilder.append("chcp 65001 >nul\r\n");
+        contentBuilder.append("setlocal enabledelayedexpansion\r\n\r\n");
+        contentBuilder.append("set \"input_dir=").append(inputDir).append("\"\r\n");
+        contentBuilder.append("set \"output_dir=").append(outputDir).append("\"\r\n");
+        contentBuilder.append("set \"hx=").append(cores).append("\"\r\n");
+        contentBuilder.append("set \"input files suffix=mp4\"\r\n");
+        contentBuilder.append("set \"with=").append(width).append("\"\r\n");
+        contentBuilder.append("set \"quality=").append(quality).append("\"\r\n");
+        contentBuilder.append("set \"compress=").append(compress).append("\"\r\n");
+        contentBuilder.append("set \"FPS=").append(fps).append("\"\r\n");
+        contentBuilder.append("set \"custom_name=").append(customFileName).append("\"\r\n\r\n");
+        contentBuilder.append("if not exist \"%output_dir%\" mkdir \"%output_dir%\"\r\n\r\n");
+        contentBuilder.append("for %%F in (\"%input_dir%\\*.%input files suffix%\") do (\r\n");
+        contentBuilder.append("    echo 正在处理: %%~nxF\r\n");
+        contentBuilder.append("    set \"output_name=%%~nF\"\r\n");
+        contentBuilder.append("    if not \"%custom_name%\" == \"\" set \"output_name=%custom_name%\"\r\n\r\n");
+        contentBuilder.append("    \"").append(ffmpegPath).append("\" -hide_banner -threads %hx% -i \"%%F\" -c:v libwebp -loop 0 -vf \"scale=%with%:-1:flags=lanczos,fps=%FPS%\" -q:v %quality% -compression_level %compress% \"%output_dir%\\!output_name!.webp\" -y\r\n\r\n");
+        contentBuilder.append("    rem 将webp重命名为gif\r\n");
+        contentBuilder.append("    ren \"%output_dir%\\!output_name!.webp\" \"!output_name!.gif\"\r\n");
+        contentBuilder.append(")\r\n\r\n");
+        contentBuilder.append("echo GIF 生成完成。\r\n");
+        contentBuilder.append("explorer \"%output_dir%\"\r\n");
+        contentBuilder.append("exit /b 0\r\n");
+
+        String content = contentBuilder.toString();
 
         Path tmp = Files.createTempFile("swgif-", ".bat");
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(tmp.toFile()))) {
