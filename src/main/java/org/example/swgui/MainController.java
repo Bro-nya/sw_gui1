@@ -20,17 +20,22 @@ import javafx.util.Duration;
 import javafx.geometry.Bounds;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.text.DecimalFormat;
 import java.util.Optional;
+
 import java.util.prefs.Preferences;
 
+/**
+ * 绳网情报站工具箱主控制器
+ * 负责视频播放、裁剪、导出和格式转换等功能
+ */
 public class MainController {
 
     @FXML private MediaView mediaView;
@@ -92,32 +97,49 @@ public class MainController {
     private static final double CROP_RATIO = (double) CROP_RATIO_H / (double) CROP_RATIO_W;
 
     private static final String FFMPEG_RESOURCE_PATH = "/org/example/swgui/ffmpeg.exe";
-    private static final String FFMPEG_PATH = "input\\ffmpeg.exe"; // 统一使用input目录下的版本
     private static File ffmpegExe = null;
-    
+
+
+
     // 添加一个静态初始化块来准备ffmpeg.exe
     static {
         try {
             // 首先尝试从项目的input目录加载ffmpeg.exe
             String userDir = System.getProperty("user.dir");
-            ffmpegExe = new File(userDir, FFMPEG_PATH);
+            ffmpegExe = new File(userDir, "input\\ffmpeg.exe");
             
-            if (ffmpegExe.exists()) {
-                System.out.println("加载ffmpeg成功");
+            if (!ffmpegExe.exists()) {
+                // 如果input目录中没有，再尝试从资源加载
+                URL ffmpegUrl = MainController.class.getResource(FFMPEG_RESOURCE_PATH);
+                if (ffmpegUrl != null) {
+                    // 将资源复制到临时文件
+                    File tempDir = new File(System.getProperty("java.io.tmpdir"), "swgui");
+                    tempDir.mkdirs();
+                    ffmpegExe = new File(tempDir, "ffmpeg.exe");
+
+                    // 复制资源到临时文件
+                    try (InputStream in = ffmpegUrl.openStream();
+                         FileOutputStream out = new FileOutputStream(ffmpegExe)) {
+                        byte[] buffer = new byte[1024];
+                        int len;
+                        while ((len = in.read(buffer)) > 0) {
+                            out.write(buffer, 0, len);
+                        }
+                    }
+
+                    // 设置可执行权限
+                    ffmpegExe.setExecutable(true);
+                } else {
+                    System.err.println("无法找到ffmpeg.exe资源");
+                }
             } else {
-                System.err.println("无法找到ffmpeg.exe: " + ffmpegExe.getAbsolutePath());
-                ffmpegExe = null;
+                System.out.println("加载成功");
             }
-        } catch (Exception e) {
+        } catch (IOException e) {
             System.err.println("准备ffmpeg.exe失败: " + e.getMessage());
         }
     }
 
-
-    /**
-     * 初始化控制器
-     * 设置UI组件、恢复用户偏好设置并初始化视频播放器
-     */
     @FXML
     public void initialize() {
         // 添加窗口大小变化监听，确保控制面板不会超出限制
@@ -459,17 +481,13 @@ public class MainController {
         if (dir != null) field.setText(dir.getAbsolutePath());
     }
 
+    /**
+     * 导出裁剪后的视频
+     * 处理时间范围、裁剪区域、编码参数等设置
+     */
     @FXML
     public void onExportTrimCrop() {
         if (mediaPlayer == null) return;
-        // 在类顶部添加
-        final String DEFAULT_VIDEO_FORMAT = "mp4";
-        final String OUTPUT_FORMAT = "webp";
-        final String FFMPEG_PRESET = "fast";
-        final int FFMPEG_CRF = 18;
-        final int MAX_EXPORT_DURATION_MS = 20_000; // 20秒
-        final String BAT_TEMP_PREFIX = "swgif-";
-        final String BAT_EXTENSION = ".bat";
         // 将导出结果直接保存到输入目录，便于 BAT 批处理
         String inputDir = Optional.ofNullable(inputDirField.getText()).orElse("");
         if (inputDir.isEmpty()) {
@@ -699,7 +717,15 @@ public class MainController {
 
             out.show();
         } catch (IOException ex) {
-            showAlert("运行失败", ex.getMessage());
+            System.err.println("批处理文件生成失败: " + ex.getMessage());
+            showAlert("运行失败", "无法生成批处理文件: " + ex.getMessage());
+        } catch (SecurityException ex) {
+            System.err.println("安全权限不足: " + ex.getMessage());
+            showAlert("运行失败", "安全权限不足，无法执行操作: " + ex.getMessage());
+        } catch (Exception ex) {
+            System.err.println("批处理执行过程中发生未知错误: " + ex.getMessage());
+            ex.printStackTrace();
+            showAlert("运行失败", "执行过程中发生错误: " + ex.getMessage());
         }
     }
 
@@ -726,6 +752,8 @@ public class MainController {
         int quality = qualitySpinner.getValue();
         int compress = compressSpinner.getValue();
         int fps = fpsSpinner.getValue();
+
+        
 
         // 构建批处理文件内容
         StringBuilder contentBuilder = new StringBuilder();
@@ -765,10 +793,19 @@ public class MainController {
 
         String content = contentBuilder.toString();
 
-        // 错误示例：临时文件未清理
-        Path tmp = Files.createTempFile("swgif-", ".bat");
+        // 创建临时文件
+    Path tmp = Files.createTempFile("swgif-", ".bat");
         // 设置文件在JVM退出时删除
         tmp.toFile().deleteOnExit();
+
+        // 添加钩子，在程序正常退出时也尝试删除
+    Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+        try {
+            Files.deleteIfExists(tmp);
+        } catch (IOException e) {
+            System.err.println("无法删除临时文件: " + tmp);
+        }
+    }));
 
         // 修复建议：在程序退出时添加清理逻辑
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(tmp.toFile()))) {
@@ -779,10 +816,29 @@ public class MainController {
 
 
 
+    /**
+     * 安全释放媒体播放器资源
+     */
     private void disposePlayer() {
         if (mediaPlayer != null) {
+            mediaPlayer.stop();
             mediaPlayer.dispose();
             mediaPlayer = null;
+            System.out.println("媒体播放器资源已释放");
+        }
+    }
+    
+    /**
+     * 在控制器销毁时释放所有资源
+     */
+    @Override
+    public void finalize() throws Throwable {
+        try {
+            disposePlayer();
+            // 确保所有子进程被终止
+            killAllProcesses();
+        } finally {
+            super.finalize();
         }
     }
 

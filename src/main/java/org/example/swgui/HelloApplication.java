@@ -20,6 +20,24 @@ import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 
 public class HelloApplication extends Application {
+    // 提取图标加载逻辑为单独方法
+    private boolean loadIcon(Stage stage) {
+        try {
+            Image icon = new Image(HelloApplication.class.getResourceAsStream("icon.png"));
+            if (icon.isError()) {
+                System.out.println("图标加载错误");
+                return false;
+            } else {
+                stage.getIcons().add(icon);
+                return true;
+            }
+        } catch (Exception e) {
+            System.out.println("无法加载图标: " + e.getMessage());
+            return false;
+        }
+    }
+    
+    // 修改start方法
     @Override
     public void start(Stage stage) throws IOException {
         // 显示暗号验证对话框
@@ -51,7 +69,7 @@ public class HelloApplication extends Application {
         stage.setScene(scene);
         stage.show();
     }
-
+    
     // 暗号验证对话框
     private boolean showPasswordDialog() {
         Stage dialogStage = new Stage();
@@ -145,9 +163,9 @@ public class HelloApplication extends Application {
     }
     
     private String hashPassword(String password) throws NoSuchAlgorithmException, InvalidKeySpecException {
-        // 使用PBKDF2算法进行暗号哈希
-        String salt = "swgui_salt_2025";
-        int iterations = 10000;
+        // 使用配置的盐值和迭代次数
+        String salt = "swgui_salt_2025"; // 实际项目中应从配置文件读取或使用随机生成的用户独立盐值
+        int iterations = 20000; // 增加迭代次数以提高安全性
         int keyLength = 256;
         
         KeySpec spec = new PBEKeySpec(password.toCharArray(), salt.getBytes(), iterations, keyLength);

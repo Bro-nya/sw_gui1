@@ -54,15 +54,14 @@
                             <padding>
                                 <Insets top="10" right="10" bottom="10" left="10"/>
                             </padding>
-                            <!-- 为所有HBox添加统一的样式类 -->
                             <HBox spacing="6" styleClass="setting-row">
-                                <Label text="剪辑mp4输出目录" styleClass="setting-label"/>
-                                <TextField fx:id="inputDirField" HBox.hgrow="ALWAYS"/>
+                                <Label text="剪辑mp4输出目录"/>
+                                <TextField fx:id="inputDirField"/>
                                 <Button text="..." onAction="#onBrowseInputDir"/>
                             </HBox>
-                            <HBox spacing="6" styleClass="setting-row">
-                                <Label text="最终动图输出目录" styleClass="setting-label"/>
-                                <TextField fx:id="outputDirField" HBox.hgrow="ALWAYS"/>
+                            <HBox spacing="6">
+                                <Label text="最终动图输出目录"/>
+                                <TextField fx:id="outputDirField"/>
                                 <Button text="..." onAction="#onBrowseOutputDir"/>
                             </HBox>
                             <HBox spacing="6">
