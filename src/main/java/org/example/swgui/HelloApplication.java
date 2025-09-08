@@ -62,27 +62,16 @@ public class HelloApplication extends Application {
         vbox.setPadding(new javafx.geometry.Insets(20));
         
         Label label = new Label("我们是谁:");
-        // 创建暗号输入对话框
-        Dialog<String> passwordDialog = new Dialog<>();
-        passwordDialog.setTitle("请输入暗号");
-        passwordDialog.setHeaderText("欢迎使用绳网工具");
-        passwordDialog.setResizable(false);
-
-        // 设置对话框的按钮类型
-        ButtonType loginButtonType = new ButtonType("确认", ButtonBar.ButtonData.OK_DONE);
-        passwordDialog.getDialogPane().getButtonTypes().addAll(loginButtonType, ButtonType.CANCEL);
-
+        
         // 创建暗号输入框
-        // 将PasswordField改为TextField以明文显示
         TextField passwordField = new TextField();
         passwordField.setPromptText("输入暗号");
-        // 移除暗号相关的特殊设置
         
         Button loginButton = new Button("确认");
         Button cancelButton = new Button("取消");
         
         loginButton.setOnAction(e -> {
-            if ("绳网大酒店".equals(passwordField.getText())) {
+            if (verifyPassword(passwordField.getText(), "绳网大酒店")) {
                 dialogStage.close();
             } else {
                 Alert alert = new Alert(Alert.AlertType.ERROR);
@@ -111,11 +100,21 @@ public class HelloApplication extends Application {
         Scene dialogScene = new Scene(vbox, 300, 150);
         dialogStage.setScene(dialogScene);
         
+        // 添加图标
+        try {
+            Image icon = new Image(HelloApplication.class.getResourceAsStream("icon.png"));
+            if (!icon.isError()) {
+                dialogStage.getIcons().add(icon);
+            }
+        } catch (Exception e) {
+            System.out.println("无法加载对话框图标: " + e.getMessage());
+        }
+        
         // 显示对话框并等待用户响应
         dialogStage.showAndWait();
         
         // 验证暗号是否正确
-        return "绳网大酒店".equals(passwordField.getText());
+        return verifyPassword(passwordField.getText(), "绳网大酒店");
     }
 
     public static void main(String[] args) {

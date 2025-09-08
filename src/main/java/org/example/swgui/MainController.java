@@ -20,16 +20,15 @@ import javafx.util.Duration;
 import javafx.geometry.Bounds;
 
 import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.DecimalFormat;
 import java.util.Optional;
-
 import java.util.prefs.Preferences;
 
 public class MainController {
@@ -93,49 +92,32 @@ public class MainController {
     private static final double CROP_RATIO = (double) CROP_RATIO_H / (double) CROP_RATIO_W;
 
     private static final String FFMPEG_RESOURCE_PATH = "/org/example/swgui/ffmpeg.exe";
+    private static final String FFMPEG_PATH = "input\\ffmpeg.exe"; // 统一使用input目录下的版本
     private static File ffmpegExe = null;
-
-
-
+    
     // 添加一个静态初始化块来准备ffmpeg.exe
     static {
         try {
             // 首先尝试从项目的input目录加载ffmpeg.exe
             String userDir = System.getProperty("user.dir");
-            ffmpegExe = new File(userDir, "input\\ffmpeg.exe");
+            ffmpegExe = new File(userDir, FFMPEG_PATH);
             
-            if (!ffmpegExe.exists()) {
-                // 如果input目录中没有，再尝试从资源加载
-                URL ffmpegUrl = MainController.class.getResource(FFMPEG_RESOURCE_PATH);
-                if (ffmpegUrl != null) {
-                    // 将资源复制到临时文件
-                    File tempDir = new File(System.getProperty("java.io.tmpdir"), "swgui");
-                    tempDir.mkdirs();
-                    ffmpegExe = new File(tempDir, "ffmpeg.exe");
-
-                    // 复制资源到临时文件
-                    try (InputStream in = ffmpegUrl.openStream();
-                         FileOutputStream out = new FileOutputStream(ffmpegExe)) {
-                        byte[] buffer = new byte[1024];
-                        int len;
-                        while ((len = in.read(buffer)) > 0) {
-                            out.write(buffer, 0, len);
-                        }
-                    }
-
-                    // 设置可执行权限
-                    ffmpegExe.setExecutable(true);
-                } else {
-                    System.err.println("无法找到ffmpeg.exe资源");
-                }
+            if (ffmpegExe.exists()) {
+                System.out.println("加载ffmpeg成功");
             } else {
-                System.out.println("加载成功");
+                System.err.println("无法找到ffmpeg.exe: " + ffmpegExe.getAbsolutePath());
+                ffmpegExe = null;
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
             System.err.println("准备ffmpeg.exe失败: " + e.getMessage());
         }
     }
 
+
+    /**
+     * 初始化控制器
+     * 设置UI组件、恢复用户偏好设置并初始化视频播放器
+     */
     @FXML
     public void initialize() {
         // 添加窗口大小变化监听，确保控制面板不会超出限制
@@ -265,11 +247,8 @@ public class MainController {
 
     private void bindFieldsToState() {
         // 初始化数值显示
-        updateTimeFieldsFromState();
         updateCropFieldsFromState();
     }
-
-    private void updateTimeFieldsFromState() { }
 
     private void updateCropFieldsFromState() {
         int[] box = computeCropBoxFromOverlay();
@@ -307,9 +286,6 @@ public class MainController {
         if (py + ph > srcH) ph = srcH - py;
         return new int[]{px, py, pw, ph};
     }
-
-    @FXML
-    public void onApplyTimeFields() { } // 空方法
 
     // 修复建议：要么实现方法，要么注释掉/删除
     @FXML
@@ -369,7 +345,6 @@ public class MainController {
             markEnd = total;
             startLabel.setText(formatTime(markStart));
             endLabel.setText(formatTime(markEnd));
-            updateTimeFieldsFromState();
             updateCropFieldsFromState();
         });
 
@@ -487,6 +462,14 @@ public class MainController {
     @FXML
     public void onExportTrimCrop() {
         if (mediaPlayer == null) return;
+        // 在类顶部添加
+        final String DEFAULT_VIDEO_FORMAT = "mp4";
+        final String OUTPUT_FORMAT = "webp";
+        final String FFMPEG_PRESET = "fast";
+        final int FFMPEG_CRF = 18;
+        final int MAX_EXPORT_DURATION_MS = 20_000; // 20秒
+        final String BAT_TEMP_PREFIX = "swgif-";
+        final String BAT_EXTENSION = ".bat";
         // 将导出结果直接保存到输入目录，便于 BAT 批处理
         String inputDir = Optional.ofNullable(inputDirField.getText()).orElse("");
         if (inputDir.isEmpty()) {
@@ -618,7 +601,6 @@ public class MainController {
         pb.redirectErrorStream(true);
         try {
             Process p = pb.start();
-            CHILD_PROCESSES.add(p);
             CHILD_PROCESSES.add(p);
             p.getInputStream().transferTo(System.out);
             int code = p.waitFor();
@@ -785,8 +767,9 @@ public class MainController {
 
         // 错误示例：临时文件未清理
         Path tmp = Files.createTempFile("swgif-", ".bat");
-        // 没有在程序退出时删除临时文件
-        
+        // 设置文件在JVM退出时删除
+        tmp.toFile().deleteOnExit();
+
         // 修复建议：在程序退出时添加清理逻辑
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(tmp.toFile()))) {
             bw.write(content);
