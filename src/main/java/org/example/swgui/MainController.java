@@ -153,6 +153,34 @@ public class MainController {
                         videoStack.setPrefWidth(videoWidth);
                     }
                 });
+
+                // 添加小键盘左右方向键监听
+                scene.setOnKeyPressed(event -> {
+                    if (event.getCode() == javafx.scene.input.KeyCode.A) {
+                        onPreviousFrame();
+                        event.consume();
+                    } else if (event.getCode() == javafx.scene.input.KeyCode.D) {
+                        onNextFrame();
+                        event.consume();
+                    } else if (event.getCode() == javafx.scene.input.KeyCode.S) {
+                        onTogglePlay();
+                        event.consume();
+                    } else if (event.getCode() == javafx.scene.input.KeyCode.Q) {
+                        onMarkStart();
+                        event.consume();
+                    } else if (event.getCode() == javafx.scene.input.KeyCode.E) {
+                        onMarkEnd();
+                        event.consume();
+                    } else if (event.getCode() == javafx.scene.input.KeyCode.F) {
+                        // 使用videoStack作为ActionEvent的source
+                        ActionEvent actionEvent = new ActionEvent(videoStack, event.getTarget());
+                        onOpenVideo(actionEvent);
+                        event.consume();
+                    } else if (event.getCode() == javafx.scene.input.KeyCode.ENTER) {
+                        onOneClickConvert();
+                        event.consume();
+                    }
+                });
             }
         });
         // 恢复上次使用的MP4输入目录
@@ -848,6 +876,60 @@ public class MainController {
             a.setTitle(title);
             a.showAndWait();
         });
+    }
+
+    /**
+     * 上一帧按钮事件处理
+     */
+    @FXML
+    public void onPreviousFrame() {
+        if (mediaPlayer == null) return;
+        moveFrame(-1);
+    }
+
+    /**
+     * 下一帧按钮事件处理
+     */
+    @FXML
+    public void onNextFrame() {
+        if (mediaPlayer == null) return;
+        moveFrame(1);
+    }
+
+    /**
+     * 移动视频到上一帧或下一帧
+     * @param direction 方向：-1 表示上一帧，1 表示下一帧
+     */
+    private void moveFrame(int direction) {
+        Media media = mediaPlayer.getMedia();
+        if (media == null) return;
+
+        // 获取当前视频位置（毫秒）
+        double currentTime = mediaPlayer.getCurrentTime().toMillis();
+
+        // 尝试获取视频帧率，默认为30fps
+        double frameRate = 30.0;
+        if (media.getMetadata().containsKey("framerate")) {
+            Object fpsObj = media.getMetadata().get("framerate");
+            if (fpsObj instanceof Number) {
+                frameRate = ((Number) fpsObj).doubleValue();
+            }
+        }
+
+        // 计算一帧的时间（毫秒）
+        double frameTime = 1000.0 / frameRate;
+
+        // 计算新的位置
+        double newTime = currentTime + (direction * frameTime);
+
+        // 确保新位置在视频范围内
+        newTime = Math.max(0, Math.min(newTime, media.getDuration().toMillis()));
+
+        // 更新视频位置
+        mediaPlayer.seek(Duration.millis(newTime));
+
+        // 更新时间标签
+        currentTimeLabel.setText(msToTimestamp((long) newTime));
     }
 }
 

@@ -19,11 +19,13 @@
                 <Insets top="10" right="10" bottom="10" left="10"/>
             </padding>
             <HBox spacing="10" alignment="CENTER_LEFT">
-                <Button text="选择你的视频" onAction="#onOpenVideo" styleClass="primary-button"/>
-                <Button text="播放/暂停" onAction="#onTogglePlay"/>
+                <Button text="选择你的视频(F)" onAction="#onOpenVideo" styleClass="primary-button"/>
+                <Button text="播放/暂停(S)" onAction="#onTogglePlay"/>
+                <Button text="上一帧(A)" onAction="#onPreviousFrame"/>
+                <Button text="下一帧(D)" onAction="#onNextFrame"/>
                 <Separator/>
-                <Button text="标记开始点" onAction="#onMarkStart"/>
-                <Button text="标记结束点" onAction="#onMarkEnd"/>
+                <Button text="标记开始点(Q)" onAction="#onMarkStart"/>
+                <Button text="标记结束点(E)" onAction="#onMarkEnd"/>
                 <Label text="开始于:"/>
                 <Label fx:id="startLabel" text="0:00" styleClass="time-label"/>
                 <Label text="结束于:"/>
@@ -106,7 +108,7 @@
                                     <Label text="3.标记剪辑点" styleClass="tip-item"/>
                                     <Label text="4.选择输出目录" styleClass="tip-item"/>
                                     <Label text="5.自定义配置（可默认）" styleClass="tip-item"/>
-                                    <Label text="6.一键转换吧" styleClass="tip-item"/>
+                                    <Label text="6.回车一键转换" styleClass="tip-item"/>
                                    <!-- <Label text="(建议勾选自动清理MP4)" styleClass="tip-note"/>-->
                                 </VBox>
                             </HBox>
