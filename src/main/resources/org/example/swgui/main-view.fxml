@@ -80,17 +80,17 @@
                                 <Label text="输出动图FPS"/>
                                 <Spinner fx:id="fpsSpinner" editable="true" />
                             </HBox>
-                            <HBox spacing="6">
-                                <CheckBox fx:id="fadeCheck" text="渐入/渐出效果" />
+                            <HBox spacing="6" >
+                                <CheckBox fx:id="fadeCheck" text="渐入/渐出效果" selected="true" />
                                 <Label text="渐变帧数:"/>
-                                <Spinner fx:id="fadeFramesSpinner" editable="true" prefWidth="80"/>
+                                <Spinner fx:id="fadeFramesSpinner" editable="true" prefWidth="80" />
                             </HBox>
                             <HBox spacing="6">
                                 <Label text="自定义文件名:"/>
                                 <TextField fx:id="customFileNameField" promptText="留空使用原始文件名"/>
                             </HBox>
                              <HBox spacing="6">
-                                <CheckBox fx:id="deleteMp4Check" text="动图生成后自动清理MP4文件" />
+                                <CheckBox fx:id="deleteMp4Check" text="动图生成后自动清理MP4文件" selected="true" />
                             </HBox>
                             <HBox spacing="8" alignment="CENTER_RIGHT">
                                 <Button text="一键转换" onAction="#onOneClickConvert" styleClass="primary-button">
@@ -102,11 +102,12 @@
                                 <VBox spacing="3" styleClass="tips-box">
                                     <Label text="使用小贴士:" styleClass="tips-title"/>
                                     <Label text="1.选择视频" styleClass="tip-item"/>
-                                    <Label text="2.标记剪辑点" styleClass="tip-item"/>
-                                    <Label text="3.选择输出目录" styleClass="tip-item"/>
-                                    <Label text="4.自定义配置" styleClass="tip-item"/>
-                                    <Label text="5.一键转换" styleClass="tip-item"/>
-                                    <Label text="(建议勾选自动清理MP4)" styleClass="tip-note"/>
+                                    <Label text="2.视频内拖动截取" styleClass="tip-item"/>
+                                    <Label text="3.标记剪辑点" styleClass="tip-item"/>
+                                    <Label text="4.选择输出目录" styleClass="tip-item"/>
+                                    <Label text="5.自定义配置（可默认）" styleClass="tip-item"/>
+                                    <Label text="6.一键转换吧" styleClass="tip-item"/>
+                                   <!-- <Label text="(建议勾选自动清理MP4)" styleClass="tip-note"/>-->
                                 </VBox>
                             </HBox>
                         </VBox>
