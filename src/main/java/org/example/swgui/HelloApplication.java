@@ -68,6 +68,17 @@ public class HelloApplication extends Application {
         stage.setResizable(true); // 允许调整窗口大小
         stage.setScene(scene);
         stage.show();
+
+        // 恢复窗口关闭事件处理
+        stage.setOnCloseRequest(event -> {
+            MainController controller = fxmlLoader.getController();
+            if (controller != null) {
+                controller.releaseAllResources();
+            }
+            // 确保清理所有临时文件
+            TempFileManager.getInstance().cleanupAllTempFiles();
+            MainController.killAllProcesses();
+        });
     }
     
     // 暗号验证对话框

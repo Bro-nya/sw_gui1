@@ -87,7 +87,20 @@ public class MainController {
 
     public static void killAllProcesses() {
         for (Process p : CHILD_PROCESSES) {
-            try { p.destroyForcibly(); } catch (Throwable ignore) { try { p.destroy(); } catch (Throwable ignored) {} }
+            try {
+                p.destroyForcibly();
+                // 等待进程结束，最多等待5秒
+                p.waitFor(5, java.util.concurrent.TimeUnit.SECONDS);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            } catch (Throwable ignore) {
+                try {
+                    p.destroy();
+                    p.waitFor(2, java.util.concurrent.TimeUnit.SECONDS);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                } catch (Throwable ignored) {}
+            }
         }
         CHILD_PROCESSES.clear();
     }
@@ -647,7 +660,8 @@ public class MainController {
         pb.redirectErrorStream(true);
         try {
             Process p = pb.start();
-            CHILD_PROCESSES.add(p);
+            CHILD_PROCESSES.add(p); // 添加这一行
+            // 将输出显示到对话框
             p.getInputStream().transferTo(System.out);
             int code = p.waitFor();
             CHILD_PROCESSES.remove(p);
@@ -822,18 +836,10 @@ public class MainController {
         String content = contentBuilder.toString();
 
         // 创建临时文件
-    Path tmp = Files.createTempFile("swgif-", ".bat");
-        // 设置文件在JVM退出时删除
-        tmp.toFile().deleteOnExit();
+        Path tmp = Files.createTempFile("swgif-", ".bat");
 
-        // 添加钩子，在程序正常退出时也尝试删除
-    Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-        try {
-            Files.deleteIfExists(tmp);
-        } catch (IOException e) {
-            System.err.println("无法删除临时文件: " + tmp);
-        }
-    }));
+        // 注册到临时文件管理器
+        TempFileManager.getInstance().registerTempFile(tmp);
 
         // 修复建议：在程序退出时添加清理逻辑
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(tmp.toFile()))) {
@@ -857,17 +863,15 @@ public class MainController {
     }
     
     /**
-     * 在控制器销毁时释放所有资源
+     * 显式释放所有资源
      */
-    @Override
-    public void finalize() throws Throwable {
-        try {
-            disposePlayer();
-            // 确保所有子进程被终止
-            killAllProcesses();
-        } finally {
-            super.finalize();
-        }
+    public void releaseAllResources() {
+        disposePlayer();
+        killAllProcesses();
+        // 因 removeEventListeners() 方法未定义，此处暂时注释掉
+        // removeEventListeners();
+        // 清理临时文件
+        TempFileManager.getInstance().cleanupAllTempFiles();
     }
 
     private void showAlert(String title, String msg) {
